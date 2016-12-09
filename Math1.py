@@ -225,7 +225,6 @@ class GA:
             if n_jobs:    
                 scores_r=np.array(pool.map(funcs,Groups_r))#pool.map(GD,Groups)
             else:
-             
                 fs0=np.array(list(map(makeup,self.Groups)))
                 scores_r=np.array(list(map(lambda f:score(self.X,self.y,f,self.I,self.W),fs0)))
             
@@ -339,6 +338,6 @@ def Matrize1(f,ymat,Imat):
     X_pre=subfuncs(ymat,Imat)
     plt.subplot(projection='3d').plot_surface(ymat,Imat,X_pre,alpha=0.2)
     return X_pre
-"""get answer of question1"""
+
 
 
