@@ -4,7 +4,8 @@
 Created on Tue Nov 29 00:21:36 2016
 
 @author: thaut
-this file is mainly about the Lagrange Interpolation, but I write 
+this file is mainly about the Lagrange Interpolation, 
+but I've write something about parametre-optimizing here 
 """
 
 """
