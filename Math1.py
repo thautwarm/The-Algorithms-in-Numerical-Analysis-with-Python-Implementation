@@ -4,6 +4,7 @@
 Created on Tue Nov 29 00:21:36 2016
 
 @author: thaut
+this file is mainly about the Lagrange Interpolation, but I write 
 """
 
 """
@@ -75,16 +76,26 @@ def score(x,y,f,I,w=None):
 """Genetic Algorithm"""
 
 """ support functions """
-def makeC():
+def makeC():  #make a contest function
     def f(t,I):
         return t**0
     return f
 
-def makeL(a,b):
+def mekePolynomial(n):
+    def f(t,I):
+        return (t-I)**n
+    return f
+
+def mekeLog():
+    def f(t,I):
+        return np.log(t-I)
+    return f
+
+def makeL(a,b): #make some special function;this is what I dealed with in some competition.
     def f(t,I):
         return np.log(np.abs(a-I*t)/np.abs(b+I*t))
-        
     return f
+
 def GD(X,y,I,Group,delta=0.001,epoch=10):
             """Calculate the gredient of function with the current parameters"""
             deltas=np.zeros((Group.shape[0],))
