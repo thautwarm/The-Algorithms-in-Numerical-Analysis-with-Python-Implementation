@@ -18,13 +18,10 @@ Implement some common algorithms about real matrices.
   For example, 
   
     GaussEq：using Gaussian elimination method to solve the linear equations.
+    
     LUEq: using LU Matrix Decomposition method to solve the linear equations.
-      
-      
-      
-      ...
-      ...
-      ...
+     
+......
     
   There're quite a lot of instances in this file can help you understand how we deal with the eigenvalues, ranks and 
   
