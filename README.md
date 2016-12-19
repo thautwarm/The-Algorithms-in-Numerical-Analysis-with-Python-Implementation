@@ -16,14 +16,13 @@ I also use the methods of Functional Programming to define a matrix in a new way
 Implement some common algorithms about real matrices.
 
   For example, 
-
-
-    GaussEq：using Gaussian elimination method to solve the linear equations.
+  ```
+    (def)GaussEq：using Gaussian elimination method to solve the linear equations.
     
-    LUEq: using LU Matrix Decomposition method to solve the linear equations.
+    (class)LUEq: using LU Matrix Decomposition method to solve the linear equations.
     
     More can be seen in Method.py.
-  
+ ```
   There're quite a lot of instances in this file can help you understand how we deal with the eigenvalues, ranks and 
   
 other objects we care about of a matrix.
