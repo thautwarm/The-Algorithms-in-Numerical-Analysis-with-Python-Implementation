@@ -10,7 +10,10 @@ import copy
 import math
 from itertools import cycle as repeat
 def add_vec(x,y,w=1):
-    x_=repeat(x)
+    if not isinstance(x,list) :
+        x_=repeat(x)
+    else:
+        x_=x
     do=zip(x_,y)
     ret=[i[0]+w*i[1] for i in do]
     return ret
@@ -38,6 +41,20 @@ def absmax(x):
         if abs(max)<abs(i):
             max=i
     return max
+def argabsmin(x):
+    min=x[0]
+    arg=0
+    for ind,i in enumerate(x[0:]):
+        if abs(min)>abs(i):
+            min=i
+            arg=ind
+    return arg
+def absmin(x):
+    min=x[0]
+    for ind,i in enumerate(x[0:]):
+        if abs(min)<abs(i):
+            min=i
+    return min
 def jacobi_sign(x):
     if x>=0:
         ret=1
@@ -129,6 +146,7 @@ class functionStack:
     def getout(self):
         return self.stack.pop()
     def pullout(self,mat):
+        self.stack.reverse()
         n=len(self.stack)
         while n:
             self.getout()(mat)
@@ -182,12 +200,13 @@ class matrix:
         for i in mat:
             ret+=i
         return ret
-    def disp(self,dig=2):
+    def disp(self,dig=5):
+        strs='%.rf'.replace('r',str(dig))
         data=self.data
         for i in data:
             for j in i:
-                print " %f " % (j),
-            print '\n'
+                print strs % (j),
+            print 
     def __getitem__(self,I):
         if type(I) in [slice,int]:
             ret=self.data[I]
@@ -209,10 +228,17 @@ class matrix:
             except:
                 return 0
     def __mul__(self,x):         
+        if isinstance(x,matrix):
             data2=x.T().data
             data1=self.data
             mat=[[sum(dot_vec(i,j)) for j in data2 ]for i in data1]
-            return matrix(mat)
+            
+        else:
+            print 233
+            mat=[[j*x for j in i]for i in self.data]
+            print mat
+            mat=matrix(mat)
+        return matrix(mat)
     def __add__(self,x):
         if not isinstance(x,matrix):
             try:
@@ -220,8 +246,8 @@ class matrix:
                 data=[[j+x for j in i]for i in data]
                 return matrix(data)
             except:
-                None
-        
+                print 'Error'
+                return ValueError
         size=x.size
         try:
             data1=x.data
@@ -233,12 +259,11 @@ class matrix:
     
     def __sub__(self,x):
         size=x.size
-        try:
-            data1=x.data
-            data2=self.data
-            mat=[[data2[i][j]-data1[i][j] for j in xrange(size[1])] for i in xrange(size[0])]
-        except:
-            print('error: unexpected size of matrix!\n')
+        data1=x.data
+        data2=self.data
+        mat=[[data2[i][j]-data1[i][j] for j in xrange(size[1])] for i in xrange(size[0])]
+
+        #print('error: unexpected size of matrix!\n')
         return matrix(mat)
     def __neg__(self):
         data=self.data
@@ -277,6 +302,31 @@ class matrix:
         elif mat==True:
             return matrix(inverse)
         
-
+def hstack(mat1,mat2,retdata=False):
+    import copy
+    if mat1.size[0]!=mat2.size[0]:
+        return ValueError
+    n=mat1.size[0]
+            
+    this=copy.deepcopy(mat1.data)
+    del copy
+    for i in range(n):
+        this[i]+=mat2[i]
+    if retdata:
+        return this
+    return matrix(this)
+def vstack(mat1,mat2,retdata=False):
+    import copy
+    if mat1.size[1]!=mat2.size[1]:
+        return ValueError
+    this=copy.deepcopy(mat1.data+mat2.data)
+    del copy
+    if retdata:
+        return this
+    return matrix(this)
     
     
+def diag(li,n=None):
+    if not n:
+        n=len(li)
+    return [[0 if i!=j else li[i] for j in range(n)] for i in range(n)] 

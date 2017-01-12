@@ -9,6 +9,7 @@ Created on Wed Dec 14 19:56:57 2016
 from __future__ import division
 from Structure import matrix,argabsmax,absmax,dot_vec,add_vec,cg_qr,functionStack,Givens
 import copy
+from itertools import repeat
 import math
 def cumsum():pass
 def GaussEq(A,B):
@@ -89,16 +90,39 @@ class PowIter:
         #m2=absmax(X)
         self.X=X
         return m1#,m2
+class RevPowIter:
+    def __init__(self,A):
+        self.Mat=A
+
+        size=A.size
+        if size[0]!=size[1]:
+            return ValueError
+        self.X=[1 for i in range(size[0])]        
+    def fit(self,epoch=10):
+        A=self.Mat
+        data=A.data
+        X=self.X
+        while epoch:
+            m=absmax(X)
+            X=[i/m for i in X]
+            X=GaussEq(A,X)
+            epoch-=1
+        
+        AX=[sum([ A_i[j]*X_j for j,X_j in enumerate(X) ]) for A_i in data] 
+        m1=sum(dot_vec(AX,X))/sum(dot_vec(X,X))
+        self.X=X
+        return m1
 def QR_split(B,NumLimit=10e-9,P_is_a_matrix=False):
-    A=copy.deepcopy(B)
-    if isinstance(A,matrix):
-        size=A.size[0]
-        A=A.data
+    if isinstance(B,matrix):
+        size=B.size[0]
+        A=copy.deepcopy(B.data)
     else:
+        A=copy.deepcopy(B)
         size=len(A)
     P=functionStack()
     for i in xrange(size):
         for j in xrange(i+1,size):
+           
             c,s=cg_qr(A,i,j)
             kw={'a':i,'b':j,'c':c,'s':s}
             P.getin(Givens(A,**kw))
@@ -108,20 +132,22 @@ def QR_split(B,NumLimit=10e-9,P_is_a_matrix=False):
         e=matrix(size).data
         e=P.pullout(e)
         del P
-        P=matrix(e)
+        P=matrix(e).T()
     return P,matrix(A)
-def QR_Iter(A,epoch=10):
+
+def lambdas(A,epoch=10):
+    B=copy.deepcopy(A)
     while epoch:
-        P,A=QR_split(A,P_is_a_matrix=True)
-        A=A*P.T()
+        Q,R=QR_split(B,P_is_a_matrix=True)
+        B=R*Q
         epoch-=1
-    return A
-            
+    return B
         
 
                 
         
-
+def vecnorm(x):
+    return math.sqrt(sum([i**2 for i in x])/len(x))
 def Norm(A,p='inf',epoch_if_norm2=200):
     if isinstance(A,matrix):
         data=A.data
@@ -204,7 +230,6 @@ class LUEq:
         L,U=LU(A)
         self.L=matrix(L)
         self.U=matrix(U)
-        print U
     def fit(self,B):
         if isinstance(B,matrix):
             B=B.c(range(B.size[0]),0)
@@ -221,6 +246,8 @@ class LUEq:
             x[i]= (y[i] - sum(dot_vec(U.c([i],rang),x[(i+1):]) ) )/U.data[i][i]
         return x
 def Jacobi(self,b,mat=True):
+        if isinstance(b,matrix):
+            b=b.c(range(b.size[0]),0)
         D=self.D
         A=self.A.data
         B=[[-A_ij/D_i if i!=j \
@@ -231,6 +258,8 @@ def Jacobi(self,b,mat=True):
         f=matrix(f).T()
         return B,f
 def Gauss_Seidel(self,b,mat=True):
+        if isinstance(b,matrix):
+            b=b.c(range(b.size[0]),0)
         D=self.D
         L=self.L
         A=self.A
@@ -245,6 +274,8 @@ def Gauss_Seidel(self,b,mat=True):
         f=Dinv*matrix(b).T()
         return B,f
 def _SOR(self,b,w,mat=True):
+        if isinstance(b,matrix):
+            b=b.c(range(b.size[0]),0)
         D=self.D
         L=self.L
         A=self.A
@@ -279,6 +310,7 @@ class IterEq:
             B,f=method(self,b,w,mat=True)
         except:
             B,f=method(self,b,mat=True)
+            
         self.B=B
         self.f=f
     def fit(self,epoch=10):
@@ -295,13 +327,13 @@ class IterEq:
     def GS(self,b,epoch=10):
         kw={'method':Gauss_Seidel,
             'b':b}
-        self.IterParamSet(kw)
+        self.IterParamSet(**kw)
         x=self.fit(epoch)
         return x
     def Jaco(self,b,epoch=10):
         kw={'method':Jacobi,
             'b':b}
-        self.IterParamSet(kw)
+        self.IterParamSet(**kw)
         x=self.fit(epoch)
         return x
     def SOR(self,b,w=1.18,epoch=10):
@@ -311,10 +343,37 @@ class IterEq:
         self.IterParamSet(**kw)
         x=self.fit(epoch)
         return x
+def diagprod(A):
+    if isinstance(A,matrix):
+        size=A.size[0]
+    else:
+        size=len(A)
+    f1=lambda x,y:x*y
+    ret=reduce(f1,[A[i][i] for i in range(size)])
+    return ret
+def det(A):
+        try:
+            QT,R=QR_split(A,P_is_a_matrix=True)
+        except:
+            R=[[0]]
+        return diagprod(R)
+def vecmean(vecs):
+   summa=reduce(add_vec,vecs)
+   n=len(vecs)
+   ret=dot_vec(1/n,summa)
+   return ret   
+def vecstd(vecs):
+    mean=vecmean(vecs)
+    def _f(vec):
+        return add_vec(vec,mean,-1)
+    stds=map(_f,vecs)
+    stds=map(dot_vec, stds,stds)
+    stds=reduce(add_vec,stds)
+    stds=[math.sqrt(std_i) for std_i in stds]
+    return stds
 
         
         
         
-        
-#def Jacobi_Eq(A,B):
+    
     
